@@ -4,6 +4,12 @@ What changed in each release. The same notes, shortened, are what F-Droid
 shows as "What's new": `fastlane/metadata/android/en-US/changelogs/`, one file
 per version code.
 
+## 0.4.1
+
+Store listing only: the short description no longer ends with a full stop,
+as F-Droid asks. The app is unchanged from 0.4.0, and this is the first
+release on F-Droid, so its "What's new" repeats the notes below.
+
 ## 0.4.0
 
 A polish release: nothing new to learn, everything easier to read.
