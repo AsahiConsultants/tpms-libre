@@ -4,6 +4,12 @@ What changed in each release. The same notes, shortened, are what F-Droid
 shows as "What's new": `fastlane/metadata/android/en-US/changelogs/`, one file
 per version code.
 
+## 0.4.2
+
+Packaging only: the per-ABI APKs take F-Droid's version codes, the version
+code times ten plus a digit for the ABI (61, 62, 63 for this release), in
+place of Flutter's 1000, 2000 and 4000 added on. The app is unchanged.
+
 ## 0.4.1
 
 Store listing only: the short description no longer ends with a full stop,
