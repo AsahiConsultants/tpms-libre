@@ -246,101 +246,132 @@ class _VehicleSheetState extends State<VehicleSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final landscape = size.width > size.height * 1.2;
+    final caption = TextStyle(
+      fontSize: 12.5,
+      color: Colors.white.withValues(alpha: 0.55),
+    );
+
+    final title = Text(
+      _editing ? 'Edit vehicle' : 'Add a vehicle',
+      style: Theme.of(context).textTheme.titleMedium,
+    );
+    final name = TextField(
+      controller: _name,
+      textCapitalization: TextCapitalization.words,
+      decoration: const InputDecoration(
+        // No example. The label says what the field is for, and a
+        // placeholder here would only ever be somebody's real plate.
+        labelText: 'Name or registration',
+        border: OutlineInputBorder(),
+      ),
+    );
+    final shape = <Widget>[
+      Text('Shape', style: Theme.of(context).textTheme.titleSmall),
+      const SizedBox(height: 4),
+      Text('Which wheels this vehicle has.', style: caption),
+      const SizedBox(height: 10),
+      RadioGroup<WheelLayout>(
+        groupValue: _layout,
+        onChanged: (v) => setState(() => _layout = v!),
+        child: Column(
+          children: [
+            for (final layout in WheelLayout.values)
+              RadioListTile<WheelLayout>(
+                contentPadding: EdgeInsets.zero,
+                // On its side every row of height counts.
+                visualDensity: landscape ? VisualDensity.compact : null,
+                value: layout,
+                title: Text(layout.label, style: const TextStyle(fontSize: 14)),
+                subtitle: Text(
+                  layout.wheels,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+      _artwork(context),
+      if (_losing > 0)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            '$_losing assigned ${_losing == 1 ? 'wheel' : 'wheels'} will be '
+            'unassigned, because this shape does not have them.',
+            style: const TextStyle(fontSize: 12.5, color: HealthColors.watch),
+          ),
+        ),
+    ];
+    final buttons = Row(
+      children: [
+        if (_editing)
+          TextButton.icon(
+            onPressed: _delete,
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: const Text('Remove'),
+            style: TextButton.styleFrom(foregroundColor: HealthColors.alert),
+          ),
+        const Spacer(),
+        FilledButton(onPressed: _save, child: Text(_editing ? 'Save' : 'Add')),
+      ],
+    );
+
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
-        20,
+        Space.margin,
         4,
-        20,
-        24 + MediaQuery.viewInsetsOf(context).bottom,
+        Space.margin,
+        Space.xl + MediaQuery.viewInsetsOf(context).bottom,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _editing ? 'Edit vehicle' : 'Add a vehicle',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              // No example. The label says what the field is for, and a
-              // placeholder here would only ever be somebody's real plate.
-              labelText: 'Name or registration',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text('Shape', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 4),
-          Text(
-            'Which wheels this vehicle has.',
-            style: TextStyle(
-              fontSize: 12.5,
-              color: Colors.white.withValues(alpha: 0.55),
-            ),
-          ),
-          const SizedBox(height: 10),
-          RadioGroup<WheelLayout>(
-            groupValue: _layout,
-            onChanged: (v) => setState(() => _layout = v!),
-            child: Column(
+      // On its side, stacked, the button was two screens down. Side by side
+      // the whole form fits: the name on the left, then the shape and the
+      // button that finishes the job on the right, where the eye ends up.
+      child: landscape
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final layout in WheelLayout.values)
-                  RadioListTile<WheelLayout>(
-                    contentPadding: EdgeInsets.zero,
-                    value: layout,
-                    title: Text(
-                      layout.label,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    subtitle: Text(
-                      layout.wheels,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      title,
+                      const SizedBox(height: Space.l),
+                      name,
+                    ],
                   ),
+                ),
+                const SizedBox(width: Space.xl),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ...shape,
+                      const SizedBox(height: Space.l),
+                      buttons,
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                title,
+                const SizedBox(height: Space.l),
+                name,
+                const SizedBox(height: Space.xl),
+                ...shape,
+                const SizedBox(height: Space.xl),
+                buttons,
               ],
             ),
-          ),
-          _artwork(context),
-          if (_losing > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                '$_losing assigned ${_losing == 1 ? 'wheel' : 'wheels'} will be '
-                'unassigned, because this shape does not have them.',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  color: HealthColors.watch,
-                ),
-              ),
-            ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              if (_editing)
-                TextButton.icon(
-                  onPressed: _delete,
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                  label: const Text('Remove'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: HealthColors.alert,
-                  ),
-                ),
-              const Spacer(),
-              FilledButton(
-                onPressed: _save,
-                child: Text(_editing ? 'Save' : 'Add'),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

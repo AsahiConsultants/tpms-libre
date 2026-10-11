@@ -153,4 +153,62 @@ void main() {
       model.dispose();
     }
   });
+
+  group('on its side, the vehicle form fits without scrolling', () {
+    // Stacked, the button that finishes the job was two screens down.
+    void expectOnScreen(WidgetTester tester, Finder f) {
+      final r = tester.getRect(f);
+      expect(r.top, greaterThanOrEqualTo(0));
+      expect(
+        r.bottom,
+        lessThanOrEqualTo(side.height),
+        reason: 'off the bottom',
+      );
+    }
+
+    Future<void> openGarage(WidgetTester tester) async {
+      await tester.tap(find.text('Weekend car'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('adding', (tester) async {
+      final model = await car();
+      try {
+        await show(tester, model, side);
+        await openGarage(tester);
+        await tester.tap(find.text('Add a vehicle'));
+        await tester.pumpAndSettle();
+        for (final f in [
+          find.byType(TextField),
+          find.text('Car'),
+          find.text('Car with spare'),
+          find.text('Motorcycle'),
+          find.widgetWithText(FilledButton, 'Add'),
+        ]) {
+          expectOnScreen(tester, f);
+        }
+        // Side by side: the name beside the shapes, not above them.
+        expect(
+          tester.getRect(find.text('Shape')).left,
+          greaterThan(tester.getRect(find.byType(TextField)).right),
+        );
+      } finally {
+        model.dispose();
+      }
+    });
+
+    testWidgets('editing', (tester) async {
+      final model = await car();
+      try {
+        await show(tester, model, side);
+        await openGarage(tester);
+        await tester.tap(find.byIcon(Icons.edit_outlined));
+        await tester.pumpAndSettle();
+        expectOnScreen(tester, find.widgetWithText(FilledButton, 'Save'));
+        expectOnScreen(tester, find.text('Remove'));
+      } finally {
+        model.dispose();
+      }
+    });
+  });
 }
