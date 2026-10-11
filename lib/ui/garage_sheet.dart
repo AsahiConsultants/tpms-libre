@@ -27,8 +27,8 @@ class GarageSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text('Vehicles', style: TextStyle(fontSize: 19)),
+              padding: EdgeInsets.fromLTRB(Space.margin, 0, Space.margin, 8),
+              child: Text('Vehicles', style: TypeScale.title),
             ),
             for (final v in model.vehicles)
               ListTile(
@@ -201,7 +201,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Drawing', style: Theme.of(context).textTheme.titleSmall),
+          const Text('Drawing', style: TypeScale.heading),
           const SizedBox(height: 4),
           Text(
             'How it appears on the home screen.',
@@ -220,10 +220,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
                   RadioListTile<VehicleArt>(
                     contentPadding: EdgeInsets.zero,
                     value: art,
-                    title: Text(
-                      art.label,
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    title: Text(art.label),
                     secondary: art.hasAsset
                         ? SizedBox(
                             width: 56,
@@ -255,7 +252,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
 
     final title = Text(
       _editing ? 'Edit vehicle' : 'Add a vehicle',
-      style: Theme.of(context).textTheme.titleMedium,
+      style: TypeScale.title,
     );
     final name = TextField(
       controller: _name,
@@ -268,7 +265,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
       ),
     );
     final shape = <Widget>[
-      Text('Shape', style: Theme.of(context).textTheme.titleSmall),
+      const Text('Shape', style: TypeScale.heading),
       const SizedBox(height: 4),
       Text('Which wheels this vehicle has.', style: caption),
       const SizedBox(height: 10),
@@ -283,7 +280,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
                 // On its side every row of height counts.
                 visualDensity: landscape ? VisualDensity.compact : null,
                 value: layout,
-                title: Text(layout.label, style: const TextStyle(fontSize: 14)),
+                title: Text(layout.label),
                 subtitle: Text(
                   layout.wheels,
                   style: TextStyle(

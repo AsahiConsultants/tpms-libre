@@ -124,7 +124,11 @@ void main() {
             // The first: the preview below repeats "Spare".
             final r = tester.getRect(find.text(label).first);
             expect(r.left, top(tester, heading).left, reason: label);
-            expect(r.height, lessThan(24), reason: '"$label" wrapped');
+            expect(
+              r.height,
+              lessThan(TypeScale.row.fontSize! * 1.6),
+              reason: '"$label" wrapped',
+            );
           }
         }
         expect(

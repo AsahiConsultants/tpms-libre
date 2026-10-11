@@ -56,8 +56,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
     final size = MediaQuery.sizeOf(context);
     final landscape = size.width > size.height * 1.2;
 
-    final scope = Theme.of(context).textTheme.titleLarge
-        ?.copyWith(fontWeight: FontWeight.w600);
+    const scope = TypeScale.title;
     final caption = TextStyle(
       fontSize: 12.5,
       color: Colors.white.withValues(alpha: 0.55),
@@ -96,7 +95,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
     ];
 
     final target = <Widget>[
-      Text('Target pressure', style: Theme.of(context).textTheme.titleMedium),
+      const Text('Target pressure', style: TypeScale.heading),
       const SizedBox(height: 4),
       Text(
         twoWheeler
@@ -137,7 +136,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ),
     ];
     final tolerance = <Widget>[
-      Text('Tolerance', style: Theme.of(context).textTheme.titleMedium),
+      const Text('Tolerance', style: TypeScale.heading),
       const SizedBox(height: 4),
       Text(
         'Deliberately lopsided. Losing pressure is what ruins tyres, '
@@ -216,7 +215,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
         contentPadding: EdgeInsets.zero,
         value: widget.haptics,
         onChanged: widget.onHaptics,
-        title: const Text('Haptics', style: TextStyle(fontSize: 14)),
+        title: const Text('Haptics'),
         subtitle: Text(
           'A small tap the first time each tyre reports after opening',
           style: TextStyle(
@@ -229,7 +228,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
         contentPadding: EdgeInsets.zero,
         value: widget.animations,
         onChanged: widget.onAnimations,
-        title: const Text('Animations', style: TextStyle(fontSize: 14)),
+        title: const Text('Animations'),
         // When Android's own switch has already stopped everything,
         // say so: otherwise this one looks broken.
         subtitle: Text(
@@ -265,11 +264,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: column(target)),
+                    // The tolerance labels are the longest in the sheet;
+                    // equal thirds wrapped "Watch if under by" once rows
+                    // went to the same size as every other list.
+                    Expanded(flex: 4, child: column(target)),
                     const SizedBox(width: Space.xl),
-                    Expanded(child: column(tolerance)),
+                    Expanded(flex: 5, child: column(tolerance)),
                     const SizedBox(width: Space.xl),
                     Expanded(
+                      flex: 4,
                       child: column([
                         ...preview,
                         const SizedBox(height: Space.xl),
@@ -418,7 +421,7 @@ class _Stepper extends StatelessWidget {
           // The label starts on the same edge as the headings. A coloured
           // dot used to sit in front of it, and an invisible one in front of
           // every label without a colour, which indented the lot by 18 dp.
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
+          Expanded(child: Text(label, style: TypeScale.row)),
           IconButton(
             onPressed: value > min ? () => onChanged(value - 1) : null,
             icon: const Icon(Icons.remove_circle_outline_rounded),

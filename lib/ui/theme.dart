@@ -87,3 +87,36 @@ abstract final class Space {
   /// the readings, the status lines, the text in every sheet.
   static const margin = 20.0;
 }
+
+/// The type scale: what a piece of text is decides how it looks.
+///
+/// The app used to render 53 text styles in 19 sizes. A sheet's title was
+/// 16, 19 or 22 depending on the sheet, a row read "Bike" at 16 in the garage
+/// and "Motorcycle" at 14 one tap later in the form, and a block of four
+/// facts mixed three sizes.
+///
+/// Readings are numbers to be read at a glance and are sized for that where
+/// they appear; everything else is one of these.
+abstract final class TypeScale {
+  /// What a screen or sheet is about: the vehicle in the app bar, "Front
+  /// left", "Vehicles", "Which sensor is on the spare?".
+  static const title = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+  );
+
+  /// A section inside a sheet, and the home screen's one-line verdict.
+  static const heading = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.15,
+  );
+
+  /// One item in a list or form: a vehicle, an action, a setting. The same
+  /// as the text Flutter gives a ListTile, so a hand-built row matches one.
+  static const row = TextStyle(fontSize: 16, letterSpacing: 0.5);
+
+  /// Sentences, and the values beside a label.
+  static const body = TextStyle(fontSize: 14, letterSpacing: 0.25);
+}

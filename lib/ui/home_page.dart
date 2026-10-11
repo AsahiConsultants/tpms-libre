@@ -271,7 +271,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         model.vehicle.name,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: TypeScale.title,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -811,8 +811,7 @@ class _Strip extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: TextStyle(
-                    fontSize: 13.5,
+                  style: TypeScale.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: color,
                   ),
@@ -937,11 +936,7 @@ class _Footer extends StatelessWidget {
                     Expanded(
                       child: Text(
                         text,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: colour,
-                        ),
+                        style: TypeScale.heading.copyWith(color: colour),
                       ),
                     ),
                   ],
@@ -1115,12 +1110,32 @@ class _PositionPicker extends StatelessWidget {
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text('Sensor ${reading.sensorId}'),
-            subtitle: Text(
-              '${reading.psi} psi · ${reading.celsius} °C · '
-              '${shortAge(DateTime.now().difference(reading.at))}',
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.margin,
+              0,
+              Space.margin,
+              Space.l,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Which wheel is ${reading.sensorId} on?',
+                  style: TypeScale.title,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${reading.psi} psi · ${reading.celsius} °C · '
+                  '${shortAge(DateTime.now().difference(reading.at))}',
+                  style: TypeScale.body.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontFeatures: steadyDigits,
+                  ),
+                ),
+              ],
             ),
           ),
           const Divider(height: 1),
@@ -1174,7 +1189,7 @@ class _TyreSheet extends StatelessWidget {
             Expanded(
               child: Text(
                 position.label,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: TypeScale.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1228,8 +1243,7 @@ class _TyreSheet extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
                           '${delta > 0 ? '+' : ''}$delta from target',
-                          style: TextStyle(
-                            fontSize: 13,
+                          style: TypeScale.body.copyWith(
                             color: HealthColors.of(state.health(model.spec)),
                             fontFeatures: steadyDigits,
                           ),
@@ -1361,7 +1375,7 @@ class _Fact extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 13.5, fontFeatures: steadyDigits),
+            style: TypeScale.body.copyWith(fontFeatures: steadyDigits),
           ),
         ),
       ],
@@ -1408,9 +1422,16 @@ class _SensorPicker extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.margin,
+              0,
+              Space.margin,
+              Space.l,
+            ),
+            child: Text(
               'Which sensor is on the ${position.label.toLowerCase()}?',
+              style: TypeScale.title,
             ),
           ),
           const Divider(height: 1),
@@ -1448,7 +1469,7 @@ class _SensorPicker extends StatelessWidget {
                           padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                           child: Text(
                             'Every sensor heard is already on a wheel.',
-                            style: TextStyle(fontSize: 13, color: muted),
+                            style: TypeScale.body.copyWith(color: muted),
                           ),
                         ),
                     ],
@@ -1507,7 +1528,7 @@ class _SensorPicker extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                 child: Text(
                   'Every sensor heard is already on a wheel.',
-                  style: TextStyle(fontSize: 13, color: muted),
+                  style: TypeScale.body.copyWith(color: muted),
                 ),
               ),
             if (placed.isNotEmpty) ...[
