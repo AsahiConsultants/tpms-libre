@@ -1,0 +1,7 @@
+Polish release.
+
+• One margin and spacing scale throughout, in portrait and landscape
+• One type scale; small and grey text now meets contrast guidelines, and the tyre cards' labels and ages are larger
+• Settings say which values belong to the vehicle and which apply to all
+• The vehicle form fits on one screen in landscape
+• Motorcycles are no longer offered tyre rotation

@@ -101,6 +101,23 @@ flutter test
 Golden-image tests are skipped by default because pixels only match on the
 machine that rendered them; see `dart_test.yaml` to run them.
 
+## Screenshots
+
+The listing screenshots are rendered from the app's own widgets by
+`test/store_screenshots_test.dart`. The vehicle photos in them are from
+[Pexels](https://www.pexels.com/), used under the
+[Pexels License](https://www.pexels.com/license/):
+
+- Honda NSX: [*A Red Sports Car*](https://www.pexels.com/photo/a-red-sports-car-17638358/)
+  by WAVYVISUALS
+- TVS Apache RR310: [*Photo of a Red and Black Big Bike*](https://www.pexels.com/photo/photo-of-a-red-and-black-big-bike-12801272/)
+  by Akash A G
+
+They are kept in [`test/screenshot_photos/`](test/screenshot_photos/) so the
+screenshots can be rendered again, and are not under the MIT licence. The app
+does not ship them. Honda, TVS and their models are trademarks of their
+owners, shown only as an owner's photo of their own vehicle would be.
+
 ## Not affiliated
 
 JK Tyre and Treel are trademarks of their respective owners. TPMS Libre is an
