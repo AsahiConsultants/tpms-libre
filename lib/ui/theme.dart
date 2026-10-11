@@ -56,3 +56,29 @@ String shortAge(Duration? d) {
   if (d.inHours < 24) return '${d.inHours}h ago';
   return '${d.inDays}d ago';
 }
+
+/// One spacing scale for the whole app.
+///
+/// Before this, every part chose its own: the picture and cards sat 14 from
+/// the edge, the banner 14 plus a margin of its own, the status lines 16,
+/// the sheets 20 and their list rows 16, the title 22. Nothing lined up, and
+/// gaps between elements were whatever each widget happened to pick.
+abstract final class Space {
+  /// Between lines that belong together: a hint and its chips, two status
+  /// lines.
+  static const s = 8.0;
+
+  /// Between parts of one composition: the picture and its readings.
+  static const m = 12.0;
+
+  /// Between separate elements: a banner and what it is about, the readings
+  /// and what they mean.
+  static const l = 16.0;
+
+  /// Between columns, and between sections of a sheet.
+  static const xl = 24.0;
+
+  /// From the screen edge to content, everywhere: the title, the picture,
+  /// the readings, the status lines, the text in every sheet.
+  static const margin = 20.0;
+}

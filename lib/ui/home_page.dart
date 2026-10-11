@@ -28,8 +28,18 @@ class _HomePageState extends State<HomePage> {
 
   TreelModel get model => widget.model;
 
-  void _onTyreTap(TyrePosition position) {
+  /// The rotation in progress, if it still applies: switching to another
+  /// vehicle mid-rotation must not leave a banner naming a wheel it lacks.
+  TyrePosition? get _rotating {
     final from = _swapFrom;
+    final layout = model.vehicle.layout;
+    return from != null && layout.rotates && layout.positions.contains(from)
+        ? from
+        : null;
+  }
+
+  void _onTyreTap(TyrePosition position) {
+    final from = _rotating;
     if (from != null) {
       setState(() => _swapFrom = null);
       if (from != position) {
@@ -49,6 +59,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onTyreLongPress(TyrePosition position) {
+    if (!model.vehicle.layout.rotates) return;
     if (!model.stateOf(position).assigned) return;
     setState(() => _swapFrom = position);
   }
@@ -166,6 +177,24 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// [child] at the shared column's width, centred like the picture above.
+  ///
+  /// Padding, not a box of fixed width. The page measures its content's
+  /// height in advance to decide whether to scroll, and a fixed-width box
+  /// does not pass its narrower width into that measurement: text was
+  /// measured at full width, wrapped less than it really does, came out
+  /// short, and the page overflowed instead of scrolling at large text sizes.
+  /// Padding narrows the measurement as well as the layout.
+  Widget _shared(BuildContext context, Widget child) {
+    final screen = MediaQuery.sizeOf(context).width;
+    final side =
+        (screen - _Diagram.portraitWidth(MediaQuery.sizeOf(context))) / 2;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: side),
+      child: child,
+    );
+  }
+
   Future<void> _showGarage() async {
     await showModalBottomSheet<void>(
       isScrollControlled: true,
@@ -218,12 +247,15 @@ class _HomePageState extends State<HomePage> {
         final banner = _Banner(
           status: widget.scanner.status,
           message: widget.scanner.message,
-          swapFrom: _swapFrom,
+          swapFrom: _rotating,
           onCancelSwap: () => setState(() => _swapFrom = null),
           onRetry: widget.scanner.retry,
         );
         return Scaffold(
           appBar: AppBar(
+            // On the page margin, like everything below it: the title's tap
+            // target carries 6 of padding of its own.
+            titleSpacing: Space.margin - 6,
             // The vehicle names the screen. With one vehicle it simply
             // reads as a title; with more it is how you change between them.
             title: InkWell(
@@ -283,32 +315,49 @@ class _HomePageState extends State<HomePage> {
                       // this has no effect and the page simply scrolls.
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (!landscape) banner,
-                        _Diagram(
-                          model: model,
-                          spec: spec,
-                          swapFrom: _swapFrom,
-                          onTyreTap: _onTyreTap,
-                          onTyreLongPress: _onTyreLongPress,
-                          onPictureTap: _showPictureOptions,
-                          insets: insets,
-                          above: landscape ? banner : null,
-                          beside: landscape
-                              ? _Footer(
-                                  model: model,
-                                  scanner: widget.scanner,
-                                  part: _FooterPart.status,
-                                )
-                              : null,
-                          belowPicture: landscape
-                              ? _Footer(
-                                  model: model,
-                                  scanner: widget.scanner,
-                                  part: _FooterPart.setup,
-                                )
-                              : null,
-                        ),
-                        if (!landscape) footer,
+                        if (landscape)
+                          _Diagram(
+                            model: model,
+                            spec: spec,
+                            swapFrom: _rotating,
+                            onTyreTap: _onTyreTap,
+                            onTyreLongPress: _onTyreLongPress,
+                            onPictureTap: _showPictureOptions,
+                            insets: insets,
+                            above: landscape ? banner : null,
+                            beside: landscape
+                                ? _Footer(
+                                    model: model,
+                                    scanner: widget.scanner,
+                                    part: _FooterPart.status,
+                                  )
+                                : null,
+                            belowPicture: landscape
+                                ? _Footer(
+                                    model: model,
+                                    scanner: widget.scanner,
+                                    part: _FooterPart.setup,
+                                  )
+                                : null,
+                          )
+                        else ...[
+                          // The banner, the picture, the readings and what
+                          // they mean all share one width on the page margin,
+                          // so they share a left edge. They used to sit at
+                          // 14, 25.5, 29.5 and 16. See _shared for why the
+                          // width comes from padding.
+                          _shared(context, banner),
+                          _Diagram(
+                            model: model,
+                            spec: spec,
+                            swapFrom: _rotating,
+                            onTyreTap: _onTyreTap,
+                            onTyreLongPress: _onTyreLongPress,
+                            onPictureTap: _showPictureOptions,
+                            insets: insets,
+                          ),
+                          _shared(context, footer),
+                        ],
                       ],
                     ),
                   ),
@@ -371,6 +420,11 @@ class _Diagram extends StatelessWidget {
   /// mount is a perfectly ordinary way to hold one.
   static bool isLandscape(Size s) => s.width > s.height * 1.2;
 
+  /// The one column everything sits in, upright: the page margin either
+  /// side, and no wider than reads well on a large phone.
+  static double portraitWidth(Size s) =>
+      math.min(s.width - 2 * Space.margin, 420.0);
+
   static const _cardGap = 6.0;
 
   bool _waking(TyrePosition p) =>
@@ -394,14 +448,11 @@ class _Diagram extends StatelessWidget {
     final layout = model.vehicle.layout;
     if (isLandscape(screen)) return _landscape(screen, layout);
 
-    final w = (screen.width - 28).clamp(0.0, 360.0);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
-      child: Center(
-        child: SizedBox(
-          width: w,
-          child: _portrait(w, screen.height, model.vehicle.art, layout),
-        ),
+    final w = portraitWidth(screen);
+    return Center(
+      child: SizedBox(
+        width: w,
+        child: _portrait(w, screen.height, model.vehicle.art, layout),
       ),
     );
   }
@@ -426,10 +477,21 @@ class _Diagram extends StatelessWidget {
   double _evenWidth(double rowW, int n) =>
       math.min((rowW - _cardGap * (n - 1)) / n, 108.0);
 
-  Widget _evenRow(List<TyrePosition> positions, double tyreW) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: [for (final p in positions) _card(p, tyreW, tyreW * 1.34)],
-  );
+  /// The cards across [rowW]. When they fill it, they sit flush with the
+  /// column's edges and exactly [_cardGap] apart; spacing them evenly put the
+  /// leftover around the outside too, so the row sat 4 in from the margin
+  /// everything else is on. A pair held at full size, a motorcycle's, has
+  /// room to spare and spreads evenly instead of huddling in the middle.
+  Widget _evenRow(List<TyrePosition> positions, double tyreW, double rowW) {
+    final n = positions.length;
+    final fills = n * tyreW + (n - 1) * _cardGap >= rowW - 0.5;
+    return Row(
+      mainAxisAlignment: fills
+          ? MainAxisAlignment.spaceBetween
+          : MainAxisAlignment.spaceEvenly,
+      children: [for (final p in positions) _card(p, tyreW, tyreW * 1.34)],
+    );
+  }
 
   Widget _picture(VehicleArt art, File? photo, double width, double height) =>
       Semantics(
@@ -507,7 +569,7 @@ class _Diagram extends StatelessWidget {
     final tyreH = tyreW * 1.34;
 
     Widget cards() {
-      if (!lineUp) return _evenRow(positions, tyreW);
+      if (!lineUp) return _evenRow(positions, tyreW, w);
       Widget under(TyrePosition p, double centre) => Positioned(
         left: (artW * centre - tyreW / 2).clamp(0.0, artW - tyreW),
         child: _card(p, tyreW, tyreH),
@@ -532,7 +594,7 @@ class _Diagram extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _picture(art, photo, artW, artH),
-          const SizedBox(height: 12),
+          const SizedBox(height: Space.m),
           cards(),
         ],
       ),
@@ -546,10 +608,10 @@ class _Diagram extends StatelessWidget {
   /// Cards never line up with wheels here: they are beside the picture, not
   /// under it.
   Widget _landscape(Size screen, WheelLayout layout) {
-    const gutter = 24.0;
+    const gutter = Space.xl;
     final art = model.vehicle.art;
     final (:photo, :aspect) = _source(art);
-    final usableW = screen.width - insets.horizontal - 28;
+    final usableW = screen.width - insets.horizontal - 2 * Space.margin;
     final usableH = screen.height - insets.vertical - kToolbarHeight - 24;
     final column = (usableW - gutter) / 2;
     // Room for the sensors waiting to be placed, when there are any.
@@ -561,8 +623,11 @@ class _Diagram extends StatelessWidget {
     final positions = layout.positions;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: Space.margin),
+      // Both columns start from the same top line. Centred separately, each
+      // on its own content, the picture floated 19 to 53 above the cards.
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -574,10 +639,17 @@ class _Diagram extends StatelessWidget {
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              // Stretched, so the banner and the status lines share the
+              // cards' left edge instead of being centred on their own width.
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ?above,
-                _evenRow(positions, _evenWidth(column, positions.length)),
-                if (beside != null) ...[const SizedBox(height: 4), beside!],
+                _evenRow(
+                  positions,
+                  _evenWidth(column, positions.length),
+                  column,
+                ),
+                ?beside,
               ],
             ),
           ),
@@ -718,7 +790,10 @@ class _Strip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(14, 6, 14, 2),
+      // No side margin: it sits in the same column as everything else.
+      // Below it, the gap to whatever it is about -- 6 to 10 before, close
+      // enough to read as part of the cards.
+      margin: const EdgeInsets.only(bottom: Space.l),
       padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
@@ -790,8 +865,16 @@ class _Footer extends StatelessWidget {
     final liveNow = model.liveCount;
     final live = scanner.status == ScanStatus.scanning;
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+    // Nothing waiting to be placed: the setup half has nothing to say, and
+    // an empty box would still push its padding into the layout.
+    if (part == _FooterPart.setup && unplaced.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // No side padding -- it sits in the shared column, on the page margin.
+    // Above it, the gap from the readings to what they mean.
+    return Padding(
+      padding: const EdgeInsets.only(top: Space.l),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -804,7 +887,7 @@ class _Footer extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.5),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Space.s),
             SizedBox(
               height: 36,
               child: ListView.separated(
@@ -828,7 +911,9 @@ class _Footer extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            // A separate group from the status below it: the alert is the
+            // most important line here and should not read as one more chip.
+            if (part == _FooterPart.all) const SizedBox(height: Space.l),
           ],
           if (part != _FooterPart.setup) ...[
             Builder(
@@ -862,7 +947,7 @@ class _Footer extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Space.s),
             Row(
               children: [
                 _Pulse(active: live, animate: model.animations),
@@ -1168,15 +1253,16 @@ class _TyreSheet extends StatelessWidget {
     ];
     final actions = [
       if (state.assigned) ...[
-        ListTile(
-          leading: const Icon(Icons.swap_horiz_rounded),
-          title: const Text('Rotate this wheel'),
-          subtitle: const Text('Then tap the wheel it swaps with'),
-          onTap: () {
-            Navigator.pop(context);
-            onSwapStart();
-          },
-        ),
+        if (model.vehicle.layout.rotates)
+          ListTile(
+            leading: const Icon(Icons.swap_horiz_rounded),
+            title: const Text('Rotate this wheel'),
+            subtitle: const Text('Then tap the wheel it swaps with'),
+            onTap: () {
+              Navigator.pop(context);
+              onSwapStart();
+            },
+          ),
         ListTile(
           leading: const Icon(Icons.link_off_rounded),
           title: const Text('Unassign sensor'),

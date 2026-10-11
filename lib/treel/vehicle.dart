@@ -82,6 +82,10 @@ enum WheelLayout {
 
   bool get hasSpare => positions.contains(TyrePosition.spare);
 
+  /// Whether its tyres can trade places. A motorcycle's front and rear
+  /// tyres differ in size and construction, so they are never rotated.
+  bool get rotates => this != motorcycle;
+
   static WheelLayout byName(String? n) =>
       WheelLayout.values.where((l) => l.name == n).firstOrNull ??
       WheelLayout.carWithSpare;
