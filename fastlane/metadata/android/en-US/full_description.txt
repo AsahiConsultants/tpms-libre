@@ -1,0 +1,23 @@
+TPMS Libre shows the pressure and temperature of every tyre (tire) from Bluetooth TPMS sensors — offline, with no account and no network access.
+
+<b>Supported sensors</b>
+<ul>
+<li>JK Tyre Treel TPMS sensors, sold for cars and two-wheelers with the SMART TYRE CAR & BIKE and Treel Care apps</li>
+</ul>
+
+<b>What it does</b>
+<ul>
+<li>Live pressure in psi and temperature in °C for every wheel</li>
+<li>Cars with or without a spare, and motorcycles; several vehicles at once</li>
+<li>Separate front and rear target pressures, with warnings when a tyre drifts</li>
+<li>Assign sensors to wheels and swap them after a rotation</li>
+<li>Use a photo of your own vehicle</li>
+</ul>
+
+<b>Privacy</b>
+The app has no internet permission, so it cannot send anything anywhere. There is no sign-in and nothing to sign up for. Choosing a photo uses Android's photo picker and needs no storage permission.
+
+Android requires the location permission for any app that reads these sensors, because their readings arrive inside iBeacon broadcasts, which Android otherwise strips. The app never reads your location.
+
+<b>Not affiliated</b>
+JK Tyre and Treel are trademarks of their respective owners. TPMS Libre is an independent project, not affiliated with or endorsed by them. It reads the radio broadcasts of sensors you own.

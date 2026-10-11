@@ -1,0 +1,8 @@
+tags:
+  # Pixel comparisons only match on the machine that rendered them: fonts and
+  # anti-aliasing differ between operating systems. Skipped by default so a
+  # plain `flutter test` passes anywhere. To look at or refresh them:
+  #
+  #   flutter test --tags golden --run-skipped --update-goldens
+  golden:
+    skip: "machine-specific pixel comparisons; see dart_test.yaml"

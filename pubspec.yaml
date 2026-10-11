@@ -1,0 +1,35 @@
+name: tpms_libre
+description: >-
+  Offline tyre pressure and temperature monitor for Bluetooth TPMS sensors.
+  No account, no network access.
+publish_to: 'none'
+
+version: 0.3.0+3
+
+environment:
+  sdk: ^3.13.4
+  # Read by the F-Droid build recipe, which checks out exactly this Flutter
+  # release before building. Keep it in step with the SDK actually used.
+  flutter: 3.47.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # BSD-3, no native dependencies, and nothing that talks to the network.
+  # Replaced flutter_blue_plus, whose 2.x releases are under a paid-for-business
+  # licence and send the app's name and id to the author on every Android
+  # build. test/dependency_audit_test.dart keeps both from coming back.
+  universal_ble: ^2.3.0
+  shared_preferences: ^2.5.5
+  # Goes through Android's Photo Picker, so choosing a picture needs no
+  # storage or media permission at all.
+  image_picker: ^1.2.3
+  path_provider: ^2.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

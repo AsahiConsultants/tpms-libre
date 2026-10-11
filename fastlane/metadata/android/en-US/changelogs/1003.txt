@@ -1,0 +1,7 @@
+First public release.
+
+• Live pressure and temperature from JK Tyre Treel TPMS sensors
+• Cars with or without a spare, and motorcycles
+• Front and rear targets with warnings
+• Your own vehicle photo
+• No internet permission, no account
