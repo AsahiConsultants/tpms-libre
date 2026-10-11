@@ -32,6 +32,15 @@ class _TreadPainter extends CustomPainter {
 /// nothing the layout had not. Every vehicle now shows its readings in a row
 /// beneath a picture, where the row order is the only other clue, so the
 /// label is doing real work again.
+/// The smallest text on a card, which is the smallest anywhere in the app.
+///
+/// The cards are what gets glanced at from a car mount, and their labels and
+/// ages were 8 to 9.5 at a third of white's strength: about 3:1, where text
+/// that small needs 4.5:1. Card text is sized for the card rather than taken
+/// from [TypeScale], since the card scales its contents to fit, but nothing
+/// on it goes below this.
+const double _minimum = 10;
+
 class TyreCard extends StatelessWidget {
   const TyreCard({
     super.key,
@@ -154,11 +163,11 @@ class TyreCard extends StatelessWidget {
                   child: Text(
                     state.position.short,
                     style: TextStyle(
-                      fontSize: small ? 8 : 9,
+                      fontSize: small ? _minimum : 11,
                       letterSpacing: 1.3,
                       height: 1,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.38),
+                      color: TypeScale.secondary,
                     ),
                   ),
                 ),
@@ -263,19 +272,22 @@ class _Reading extends StatelessWidget {
               child: Text(
                 'psi',
                 style: TextStyle(
-                  fontSize: 9,
-                  color: Colors.white.withValues(alpha: 0.45),
+                  fontSize: small ? _minimum : 11,
+                  color: TypeScale.secondary,
                 ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 2),
+        // The same "28 °C" as everywhere else, with a space that cannot
+        // break. The narrow no-break space would be the typographer's
+        // choice, but Flutter's bundled Roboto has no glyph for it.
         Text(
-          '$celsius°C',
+          '$celsius\u00a0°C',
           style: TextStyle(
             fontSize: small ? 11 : 12.5,
-            color: Colors.white.withValues(alpha: 0.55),
+            color: TypeScale.secondary,
             fontFeatures: steadyDigits,
           ),
         ),
@@ -283,9 +295,11 @@ class _Reading extends StatelessWidget {
         Text(
           age,
           maxLines: 1,
+          // A fresh reading's age is routine; a stale one is a warning,
+          // so it goes brighter as well as italic.
           style: TextStyle(
-            fontSize: small ? 8.5 : 9.5,
-            color: Colors.white.withValues(alpha: stale ? 0.6 : 0.33),
+            fontSize: small ? _minimum : 11,
+            color: stale ? Colors.white : TypeScale.secondary,
             fontStyle: stale ? FontStyle.italic : null,
           ),
         ),
@@ -304,17 +318,18 @@ class _Empty extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // 3:1 at least, as an icon needs; it was 2.5:1.
         Icon(
           assigned ? Icons.more_horiz_rounded : Icons.add_rounded,
           size: small ? 22 : 26,
-          color: Colors.white.withValues(alpha: 0.28),
+          color: Colors.white.withValues(alpha: 0.45),
         ),
         const SizedBox(height: 3),
         Text(
           assigned ? 'waiting' : 'assign',
           style: TextStyle(
-            fontSize: small ? 8.5 : 9.5,
-            color: Colors.white.withValues(alpha: 0.33),
+            fontSize: small ? _minimum : 11,
+            color: TypeScale.secondary,
           ),
         ),
       ],

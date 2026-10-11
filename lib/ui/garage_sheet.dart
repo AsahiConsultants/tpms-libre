@@ -42,7 +42,6 @@ class GarageSheet extends StatelessWidget {
                 subtitle: Text(
                   '${v.layout.label} · ${v.assignments.length} of '
                   '${v.positions.length} wheels assigned',
-                  style: const TextStyle(fontSize: 12),
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 20),
@@ -203,12 +202,9 @@ class _VehicleSheetState extends State<VehicleSheet> {
         children: [
           const Text('Drawing', style: TypeScale.heading),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             'How it appears on the home screen.',
-            style: TextStyle(
-              fontSize: 12.5,
-              color: Colors.white.withValues(alpha: 0.55),
-            ),
+            style: TypeScale.caption,
           ),
           const SizedBox(height: 10),
           RadioGroup<VehicleArt>(
@@ -245,10 +241,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final landscape = size.width > size.height * 1.2;
-    final caption = TextStyle(
-      fontSize: 12.5,
-      color: Colors.white.withValues(alpha: 0.55),
-    );
+    const caption = TypeScale.caption;
 
     final title = Text(
       _editing ? 'Edit vehicle' : 'Add a vehicle',
@@ -281,13 +274,7 @@ class _VehicleSheetState extends State<VehicleSheet> {
                 visualDensity: landscape ? VisualDensity.compact : null,
                 value: layout,
                 title: Text(layout.label),
-                subtitle: Text(
-                  layout.wheels,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.5),
-                  ),
-                ),
+                subtitle: Text(layout.wheels),
               ),
           ],
         ),

@@ -101,7 +101,7 @@ void main() {
 
       final target = tester.getRect(find.text('Target pressure'));
       final tolerance = tester.getRect(find.text('Tolerance'));
-      final preview = tester.getRect(find.text('What you will see'));
+      final preview = tester.getRect(find.text('WHAT YOU WILL SEE'));
       expect(tolerance.left, greaterThan(target.right));
       expect(preview.left, greaterThan(tolerance.right));
       expect(tolerance.top, closeTo(target.top, 2), reason: 'side by side');

@@ -15,7 +15,7 @@ ThemeData buildTheme() {
         surfaceContainerHighest: const Color(0xFF232830),
       );
 
-  return ThemeData(
+  final theme = ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
     scaffoldBackgroundColor: const Color(0xFF0E1013),
@@ -28,10 +28,18 @@ ThemeData buildTheme() {
       backgroundColor: Color(0xFF1B1F26),
       surfaceTintColor: Colors.transparent,
     ),
+  );
+  return theme.copyWith(
     // On the page margin, like every heading in every sheet. Flutter's own
     // 16 left each list a few pixels inside the title above it.
-    listTileTheme: const ListTileThemeData(
-      contentPadding: EdgeInsets.symmetric(horizontal: Space.margin),
+    listTileTheme: ListTileThemeData(
+      contentPadding: const EdgeInsets.symmetric(horizontal: Space.margin),
+      // Every subtitle is a caption. Flutter's own is 14 in the theme's
+      // grey, which several rows overrode to 12 and others did not. A
+      // theme's text style replaces what is inherited rather than adding to
+      // it, so the caption goes on top of the theme's body text: on its own
+      // it carried no font, and rendered in whatever was the default.
+      subtitleTextStyle: theme.textTheme.bodyMedium!.merge(TypeScale.caption),
     ),
   );
 }
@@ -119,4 +127,28 @@ abstract final class TypeScale {
 
   /// Sentences, and the values beside a label.
   static const body = TextStyle(fontSize: 14, letterSpacing: 0.25);
+
+  /// The one colour for text that supports other text. It replaces five
+  /// strengths of translucent white and the theme's own grey; the faintest
+  /// of them, 35%, read at 3.2:1 where small text needs 4.5:1. This is 6.7:1
+  /// on a sheet and 7.2:1 on the page.
+  static const secondary = Color(0x99FFFFFF);
+
+  /// What supports other text: a subtitle, a hint, the label beside a value,
+  /// a unit.
+  static const caption = TextStyle(
+    fontSize: 12.5,
+    letterSpacing: 0.25,
+    color: secondary,
+  );
+
+  /// A label over a group: "WHAT YOU WILL SEE", "NOT ON A WHEEL". Written in
+  /// capitals at the call site, so the words read the same to a screen
+  /// reader as they look.
+  static const overline = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1,
+    color: secondary,
+  );
 }

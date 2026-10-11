@@ -94,7 +94,7 @@ void main() {
         final everywhere = top(tester, 'All vehicles');
         expect(
           everywhere.top,
-          greaterThan(top(tester, 'What you will see').top),
+          greaterThan(top(tester, 'WHAT YOU WILL SEE').top),
         );
         expect(top(tester, 'Haptics').top, greaterThan(everywhere.bottom));
         expect(top(tester, 'Animations').top, greaterThan(everywhere.bottom));

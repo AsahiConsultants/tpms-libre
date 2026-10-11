@@ -126,7 +126,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 subtitle: const Text(
                   'Stays on this phone. The app has no way to send it anywhere.',
-                  style: TextStyle(fontSize: 12),
                 ),
                 onTap: () => Navigator.pop(context, 'pick'),
               ),
@@ -689,10 +688,7 @@ class _AddPhoto extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 'Add a photo of your vehicle',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.60),
-                ),
+                style: TypeScale.body.copyWith(color: TypeScale.secondary),
               ),
             ],
           ),
@@ -821,11 +817,7 @@ class _Strip extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       detail!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.35,
-                        color: Colors.white.withValues(alpha: 0.6),
-                      ),
+                      style: TypeScale.caption.copyWith(height: 1.35),
                     ),
                   ),
               ],
@@ -882,10 +874,7 @@ class _Footer extends StatelessWidget {
             Text(
               '${unplaced.length} sensor${unplaced.length == 1 ? '' : 's'} '
               'not placed — tap to assign',
-              style: TextStyle(
-                fontSize: 11.5,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
+              style: TypeScale.caption,
             ),
             const SizedBox(height: Space.s),
             SizedBox(
@@ -900,9 +889,10 @@ class _Footer extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     avatar: const Icon(Icons.sensors_rounded, size: 15),
                     label: Text(
-                      '${r.sensorId}  ${r.psi} psi',
-                      style: const TextStyle(
-                        fontSize: 12,
+                      '${r.sensorId}  ${r.psi}\u00a0psi',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption.fontSize,
+                        fontWeight: FontWeight.w500,
                         fontFeatures: steadyDigits,
                       ),
                     ),
@@ -920,6 +910,11 @@ class _Footer extends StatelessWidget {
               builder: (context) {
                 final (text, health) = model.summary;
                 final colour = HealthColors.of(health);
+                // The unknown grey is fine for an icon and too faint for
+                // words: 3.1:1, on the first line anyone reads.
+                final words = health == TyreHealth.unknown
+                    ? TypeScale.secondary
+                    : colour;
                 return Row(
                   children: [
                     Icon(
@@ -936,7 +931,7 @@ class _Footer extends StatelessWidget {
                     Expanded(
                       child: Text(
                         text,
-                        style: TypeScale.heading.copyWith(color: colour),
+                        style: TypeScale.heading.copyWith(color: words),
                       ),
                     ),
                   ],
@@ -956,10 +951,7 @@ class _Footer extends StatelessWidget {
                   child: Text(
                     live ? 'Listening' : 'Not listening',
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.55),
-                    ),
+                    style: TypeScale.caption,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -973,10 +965,7 @@ class _Footer extends StatelessWidget {
                         : '$liveNow of $known live',
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.45),
-                    ),
+                    style: TypeScale.caption,
                   ),
                 ),
               ],
@@ -987,10 +976,7 @@ class _Footer extends StatelessWidget {
                 child: Text(
                   'Parked sensors broadcast every few minutes. Move the vehicle, '
                   'or wait.',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.white.withValues(alpha: 0.35),
-                  ),
+                  style: TypeScale.caption,
                 ),
               ),
           ],
@@ -1100,9 +1086,7 @@ class _PositionPicker extends StatelessWidget {
       title: Text(p.label),
       subtitle: () {
         final occupant = model.stateOf(p).sensorId;
-        return occupant == null
-            ? null
-            : Text('replaces $occupant', style: const TextStyle(fontSize: 12));
+        return occupant == null ? null : Text('replaces $occupant');
       }(),
       onTap: () => Navigator.pop(context, p),
     );
@@ -1128,10 +1112,10 @@ class _PositionPicker extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${reading.psi} psi · ${reading.celsius} °C · '
+                  '${reading.psi}\u00a0psi · ${reading.celsius}\u00a0°C · '
                   '${shortAge(DateTime.now().difference(reading.at))}',
                   style: TypeScale.body.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: TypeScale.secondary,
                     fontFeatures: steadyDigits,
                   ),
                 ),
@@ -1196,11 +1180,8 @@ class _TyreSheet extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              'target ${model.spec.targetFor(position)} psi',
-              style: TextStyle(
-                fontSize: 12.5,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
+              'target ${model.spec.targetFor(position)}\u00a0psi',
+              style: TypeScale.caption,
             ),
           ],
         ),
@@ -1253,7 +1234,7 @@ class _TyreSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              _Fact('Temperature', '${reading.celsius} °C'),
+              _Fact('Temperature', '${reading.celsius}\u00a0°C'),
               _Fact(
                 'Also reads',
                 '${reading.bar.toStringAsFixed(2)} bar · '
@@ -1362,16 +1343,7 @@ class _Fact extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
       children: [
-        SizedBox(
-          width: 108,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.5,
-              color: Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-        ),
+        SizedBox(width: 108, child: Text(label, style: TypeScale.caption)),
         Flexible(
           child: Text(
             value,
@@ -1407,14 +1379,11 @@ class _SensorPicker extends StatelessWidget {
 
     Widget heading(String text) => Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 12, letterSpacing: 0.4, color: muted),
-      ),
+      child: Text(text, style: TypeScale.overline),
     );
 
     String reading(TreelReading r) =>
-        '${r.psi} psi · ${r.celsius} °C · '
+        '${r.psi}\u00a0psi · ${r.celsius}\u00a0°C · '
         '${shortAge(DateTime.now().difference(r.at))}';
 
     return SafeArea(
@@ -1469,7 +1438,9 @@ class _SensorPicker extends StatelessWidget {
                           padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                           child: Text(
                             'Every sensor heard is already on a wheel.',
-                            style: TypeScale.body.copyWith(color: muted),
+                            style: TypeScale.body.copyWith(
+                              color: TypeScale.secondary,
+                            ),
                           ),
                         ),
                     ],
@@ -1528,7 +1499,7 @@ class _SensorPicker extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                 child: Text(
                   'Every sensor heard is already on a wheel.',
-                  style: TypeScale.body.copyWith(color: muted),
+                  style: TypeScale.body.copyWith(color: TypeScale.secondary),
                 ),
               ),
             if (placed.isNotEmpty) ...[

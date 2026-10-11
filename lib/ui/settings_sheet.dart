@@ -57,10 +57,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
     final landscape = size.width > size.height * 1.2;
 
     const scope = TypeScale.title;
-    final caption = TextStyle(
-      fontSize: 12.5,
-      color: Colors.white.withValues(alpha: 0.55),
-    );
+    const caption = TypeScale.caption;
     final name = widget.vehicleName.trim();
     final title = Text(
       name.isEmpty ? 'This vehicle' : name,
@@ -103,10 +100,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   'the swingarm or under the seat.'
             : 'Cold pressure from the door placard. The spare is often '
                   'set higher or lower than the road wheels.',
-        style: TextStyle(
-          fontSize: 12.5,
-          color: Colors.white.withValues(alpha: 0.55),
-        ),
+        style: caption,
       ),
       const SizedBox(height: 12),
       _Stepper(
@@ -143,10 +137,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
         'while heat alone adds a couple of psi on any decent drive — '
         'a 13 °C rise is worth about 2 psi — so the upper bound has to '
         'be loose or it cries wolf after every trip.',
-        style: TextStyle(
-          fontSize: 12.5,
-          color: Colors.white.withValues(alpha: 0.55),
-        ),
+        style: caption,
       ),
       const SizedBox(height: 12),
       _Stepper(
@@ -218,10 +209,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
         title: const Text('Haptics'),
         subtitle: Text(
           'A small tap the first time each tyre reports after opening',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
         ),
       ),
       SwitchListTile(
@@ -236,10 +223,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
               ? 'Off for now: "Remove animations" is on in Android\'s '
                     'accessibility settings'
               : 'Readings change without movement when off',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
         ),
       ),
     ];
@@ -318,16 +301,7 @@ class _Preview extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
           children: [
-            SizedBox(
-              width: 58,
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.6),
-                ),
-              ),
-            ),
+            SizedBox(width: 58, child: Text(label, style: TypeScale.caption)),
             Expanded(
               child: Wrap(
                 spacing: 6,
@@ -355,15 +329,7 @@ class _Preview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'What you will see',
-            style: TextStyle(
-              fontSize: 11,
-              letterSpacing: 1,
-              fontWeight: FontWeight.w700,
-              color: Colors.white.withValues(alpha: 0.45),
-            ),
-          ),
+          const Text('WHAT YOU WILL SEE', style: TypeScale.overline),
           const SizedBox(height: 8),
           row('Front', spec.front),
           row('Rear', spec.rear),
@@ -447,16 +413,7 @@ class _Stepper extends StatelessWidget {
           ),
           // Sized for "psi". It was 82 wide from when the suffix read
           // "psi → watch", which left a dead gap after every number.
-          SizedBox(
-            width: 30,
-            child: Text(
-              suffix,
-              style: TextStyle(
-                fontSize: 11.5,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-            ),
-          ),
+          SizedBox(width: 30, child: Text(suffix, style: TypeScale.caption)),
         ],
       ),
     );
