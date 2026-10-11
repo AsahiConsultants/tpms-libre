@@ -28,6 +28,11 @@ ThemeData buildTheme() {
       backgroundColor: Color(0xFF1B1F26),
       surfaceTintColor: Colors.transparent,
     ),
+    // On the page margin, like every heading in every sheet. Flutter's own
+    // 16 left each list a few pixels inside the title above it.
+    listTileTheme: const ListTileThemeData(
+      contentPadding: EdgeInsets.symmetric(horizontal: Space.margin),
+    ),
   );
 }
 

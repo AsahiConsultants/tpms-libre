@@ -159,6 +159,7 @@ void main() {
         ),
         home: Scaffold(
           body: SettingsSheet(
+            vehicleName: 'My car',
             layout: WheelLayout.car,
             spec: const PressureSpec(),
             onChanged: (_) {},

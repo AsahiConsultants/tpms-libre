@@ -33,6 +33,7 @@ Future<void> pumpSheet(
       theme: buildTheme(),
       home: Scaffold(
         body: SettingsSheet(
+          vehicleName: 'My vehicle',
           layout: layout,
           spec: const PressureSpec(front: 32, rear: 30, spare: 34),
           onChanged: (_) {},

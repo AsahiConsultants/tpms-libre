@@ -223,6 +223,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context) => ListenableBuilder(
         listenable: model,
         builder: (context, _) => SettingsSheet(
+          vehicleName: model.vehicle.name,
           layout: model.vehicle.layout,
           spec: model.spec,
           onChanged: model.setSpec,
@@ -1317,19 +1318,12 @@ class _TyreSheet extends StatelessWidget {
                     children: details,
                   ),
                 ),
-                // A border rather than a divider stretched to the row's
-                // height: measuring that height ahead of layout guessed wrong
-                // whenever an action's text wrapped, and overflowed.
-                Expanded(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(color: Theme.of(context).dividerColor),
-                      ),
-                    ),
-                    child: Column(children: actions),
-                  ),
-                ),
+                // No rule between the two: one only as tall as the actions
+                // stopped halfway down the reading and looked broken, and
+                // stretching one to the row's height means measuring ahead of
+                // layout, which overflowed whenever text wrapped. The gap
+                // separates them well enough.
+                Expanded(child: Column(children: actions)),
               ],
             )
           else ...[

@@ -144,6 +144,7 @@ void main() {
       Scaffold(
         body: SafeArea(
           child: SettingsSheet(
+            vehicleName: 'My car',
             layout: WheelLayout.carWithSpare,
             spec: const PressureSpec(front: 33, rear: 33, spare: 30),
             onChanged: (_) {},

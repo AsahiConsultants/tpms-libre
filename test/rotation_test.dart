@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tpms_libre/treel/model.dart';
 import 'package:tpms_libre/treel/reading.dart';
 import 'package:tpms_libre/treel/scanner.dart';
-import 'package:tpms_libre/treel/vehicle.dart';
 import 'package:tpms_libre/ui/home_page.dart';
 import 'package:tpms_libre/ui/theme.dart';
 import 'package:tpms_libre/ui/tyre.dart';

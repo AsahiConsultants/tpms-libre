@@ -3,10 +3,17 @@ import 'package:flutter/material.dart';
 import '../treel/model.dart';
 import 'theme.dart';
 
-/// Editing what "correct" means for this vehicle.
+/// Editing what "correct" means for this vehicle, and how the app feels.
+///
+/// Those are two different scopes in one sheet: pressures belong to the
+/// vehicle on screen, while haptics and animations are the same everywhere.
+/// The sheet is split under two headings that say so, the vehicle's own name
+/// and "All vehicles", because nothing else would tell an owner with two
+/// cars that setting one left the other alone.
 class SettingsSheet extends StatefulWidget {
   const SettingsSheet({
     super.key,
+    required this.vehicleName,
     required this.layout,
     required this.spec,
     required this.onChanged,
@@ -15,6 +22,9 @@ class SettingsSheet extends StatefulWidget {
     required this.onHaptics,
     required this.onAnimations,
   });
+
+  /// The name the owner gave the vehicle these pressures belong to.
+  final String vehicleName;
 
   /// What wheels this vehicle has. A motorcycle has no spare, and offering
   /// a target pressure for one invites someone to set a number that can
@@ -45,6 +55,45 @@ class _SettingsSheetState extends State<SettingsSheet> {
     final twoWheeler = widget.layout == WheelLayout.motorcycle;
     final size = MediaQuery.sizeOf(context);
     final landscape = size.width > size.height * 1.2;
+
+    final scope = Theme.of(context).textTheme.titleLarge
+        ?.copyWith(fontWeight: FontWeight.w600);
+    final caption = TextStyle(
+      fontSize: 12.5,
+      color: Colors.white.withValues(alpha: 0.55),
+    );
+    final name = widget.vehicleName.trim();
+    final title = Text(
+      name.isEmpty ? 'This vehicle' : name,
+      style: scope,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+    const only = 'Saved for this vehicle only';
+    // On its side there is no height to spare, so the name and what it
+    // means share a line.
+    final vehicle = <Widget>[
+      if (landscape)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Flexible(child: title),
+            const SizedBox(width: Space.m),
+            Text(only, style: caption),
+          ],
+        )
+      else ...[
+        title,
+        const SizedBox(height: 2),
+        Text(only, style: caption),
+      ],
+    ];
+    final everywhere = <Widget>[
+      const Divider(height: 1),
+      const SizedBox(height: Space.l),
+      Text('All vehicles', style: scope),
+    ];
 
     final target = <Widget>[
       Text('Target pressure', style: Theme.of(context).textTheme.titleMedium),
@@ -163,8 +212,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
       _Preview(spec: _spec, hasSpare: widget.layout.hasSpare),
     ];
     final feel = <Widget>[
-      Text('Feel', style: Theme.of(context).textTheme.titleMedium),
-      const SizedBox(height: 4),
       SwitchListTile(
         contentPadding: EdgeInsets.zero,
         value: widget.haptics,
@@ -206,35 +253,43 @@ class _SettingsSheetState extends State<SettingsSheet> {
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        padding: const EdgeInsets.fromLTRB(Space.margin, 4, Space.margin, 24),
         // On its side the phone has width and no height: three columns
         // instead of one, so the whole sheet is most of a screen rather than
         // three of them. Targets first, then the tolerance that applies to
         // them, then what that will look like and how the app should feel.
         child: landscape
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: column(target)),
-                  const SizedBox(width: 24),
-                  Expanded(child: column(tolerance)),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: column([
-                      ...preview,
-                      const SizedBox(height: 18),
-                      ...feel,
-                    ]),
-                  ),
-                ],
-              )
+            ? column([
+                ...vehicle,
+                const SizedBox(height: Space.l),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: column(target)),
+                    const SizedBox(width: Space.xl),
+                    Expanded(child: column(tolerance)),
+                    const SizedBox(width: Space.xl),
+                    Expanded(
+                      child: column([
+                        ...preview,
+                        const SizedBox(height: Space.xl),
+                        ...everywhere,
+                        ...feel,
+                      ]),
+                    ),
+                  ],
+                ),
+              ])
             : column([
+                ...vehicle,
+                const SizedBox(height: Space.l),
                 ...target,
-                const SizedBox(height: 24),
+                const SizedBox(height: Space.xl),
                 ...tolerance,
-                const SizedBox(height: 18),
+                const SizedBox(height: Space.l),
                 ...preview,
-                const SizedBox(height: 24),
+                const SizedBox(height: Space.xl),
+                ...everywhere,
                 ...feel,
               ]),
       ),
@@ -360,15 +415,9 @@ class _Stepper extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: accent ?? Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-          ),
+          // The label starts on the same edge as the headings. A coloured
+          // dot used to sit in front of it, and an invisible one in front of
+          // every label without a colour, which indented the lot by 18 dp.
           Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
           IconButton(
             onPressed: value > min ? () => onChanged(value - 1) : null,
@@ -380,10 +429,11 @@ class _Stepper extends StatelessWidget {
             child: Text(
               '$value',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
                 fontFeatures: steadyDigits,
+                color: accent,
               ),
             ),
           ),
