@@ -206,14 +206,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showSettings() async {
-    final size = MediaQuery.sizeOf(context);
     await showModalBottomSheet<void>(
       context: context,
-      // Material caps a sheet at 640 wide, too narrow for three columns of
-      // settings; on its side the phone has the width to give.
-      constraints: _Diagram.isLandscape(size)
-          ? BoxConstraints(maxWidth: size.width - 48)
-          : null,
+      // No cap here: one given here is fixed for as long as the sheet is
+      // open. Opened upright and then turned, the sheet kept the upright
+      // width and squeezed three columns into it. It sizes itself below.
+      constraints: const BoxConstraints(),
       isScrollControlled: true,
       // Without this the sheet runs under the status bar and the first
       // heading collides with the clock.
@@ -221,16 +219,25 @@ class _HomePageState extends State<HomePage> {
       showDragHandle: true,
       builder: (context) => ListenableBuilder(
         listenable: model,
-        builder: (context, _) => SettingsSheet(
-          vehicleName: model.vehicle.name,
-          layout: model.vehicle.layout,
-          spec: model.spec,
-          onChanged: model.setSpec,
-          haptics: model.haptics,
-          animations: model.animations,
-          onHaptics: model.setHaptics,
-          onAnimations: model.setAnimations,
-        ),
+        builder: (context, _) {
+          final size = MediaQuery.sizeOf(context);
+          return SizedBox(
+            // Material caps a sheet at 640 wide, too narrow for three
+            // columns of settings; on its side the phone has the width to
+            // give.
+            width: _Diagram.isLandscape(size) ? size.width - 48 : 640,
+            child: SettingsSheet(
+              vehicleName: model.vehicle.name,
+              layout: model.vehicle.layout,
+              spec: model.spec,
+              onChanged: model.setSpec,
+              haptics: model.haptics,
+              animations: model.animations,
+              onHaptics: model.setHaptics,
+              onAnimations: model.setAnimations,
+            ),
+          );
+        },
       ),
     );
   }

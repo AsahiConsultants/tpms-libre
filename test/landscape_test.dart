@@ -111,6 +111,40 @@ void main() {
     }
   });
 
+  testWidgets('settings opened upright and then turned on its side looks as '
+      'if it had been opened on its side', (tester) async {
+    // The sheet took its width from the screen it was opened on and kept
+    // it: opened upright, it stayed at Material's 640 cap after the phone
+    // turned, and the three columns were squeezed into that -- "Front axle"
+    // wrapped a few letters to a line.
+    const labels = [
+      'Target pressure',
+      'Front axle',
+      'Tolerance',
+      'Watch if under by',
+      'WHAT YOU WILL SEE',
+    ];
+    Future<List<Rect>> settings({required Size openedAt}) async {
+      final model = await busyCar();
+      try {
+        await show(tester, model, openedAt);
+        await tester.tap(find.byIcon(Icons.tune_rounded));
+        await tester.pumpAndSettle();
+        tester.view.physicalSize = side * 2.625;
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        return [for (final l in labels) tester.getRect(find.text(l))];
+      } finally {
+        await tester.pumpWidget(const SizedBox());
+        model.dispose();
+      }
+    }
+
+    final opened = await settings(openedAt: side);
+    final turned = await settings(openedAt: upright);
+    expect(turned, opened);
+  });
+
   testWidgets('rotating: the instruction sits with the cards, and nothing '
       'falls off the bottom', (tester) async {
     // The busiest moment: rotating, with a sensor waiting to be placed and
