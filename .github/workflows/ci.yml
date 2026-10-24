@@ -1,0 +1,29 @@
+# The same checks as the GitLab pipeline (tool/ci.sh), so commits on the
+# GitHub mirror carry a tick too. Changes land on GitLab and arrive here by
+# push. The weekly run is GitLab's alone: GitHub switches off scheduled
+# workflows in a repository with no activity for 60 days, and one failure
+# should not send two emails.
+
+name: CI
+
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: tool/ci.sh test
+
+  osv-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: tool/ci.sh osv

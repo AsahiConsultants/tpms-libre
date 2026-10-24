@@ -1,0 +1,20 @@
+# Runs on every push, and weekly from a pipeline schedule (Build → Pipeline
+# schedules), so a newly published vulnerability is caught even when nothing
+# here has changed. The checks themselves are in tool/ci.sh, which the GitHub
+# mirror runs too.
+
+default:
+  image: debian:13-slim
+  before_script:
+    - apt-get update -qq
+    - >-
+      apt-get install -qq -y --no-install-recommends
+      ca-certificates curl git unzip xz-utils >/dev/null
+
+test:
+  script:
+    - tool/ci.sh test
+
+osv-scanner:
+  script:
+    - tool/ci.sh osv
