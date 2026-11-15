@@ -310,7 +310,7 @@ TreelReading? decodeTpmsBleA(
   final celsius = _signedInt32Le(frame, 10) / 100.0;
   final sensorId = _tpmsHex(frame.sublist(0, 6));
   return _tpmsReading(
-    sensorId: 'tpms-a-' + sensorId,
+    sensorId: 'tpms-a-$sensorId',
     pressureBar: pressureBar,
     celsius: celsius,
     rssi: rssi,
@@ -350,7 +350,7 @@ TreelReading? decodeTpmsBleC(
       ? _tpmsHex(sensorSuffix.take(3))
       : _tpmsDeviceId(deviceId);
   return _tpmsReading(
-    sensorId: 'michelin-' + sensorId,
+    sensorId: 'michelin-$sensorId',
     pressureBar: pressureBar,
     celsius: rawTemperature.toDouble(),
     rssi: rssi,
@@ -380,7 +380,7 @@ TreelReading? decodeTpmsBleD(
       ? _tpmsHex(frame.sublist(9, 15).reversed)
       : _tpmsDeviceId(deviceId);
   return _tpmsReading(
-    sensorId: 'itpms-' + sensorId,
+    sensorId: 'itpms-$sensorId',
     pressureBar: pressureBar,
     celsius: temperature.toDouble(),
     rssi: rssi,
@@ -415,7 +415,7 @@ TreelReading? decodeTpmsBleE(
       ? _tpmsHex(sensorSuffix.take(3))
       : _tpmsDeviceId(deviceId);
   return _tpmsReading(
-    sensorId: 'fobo-' + sensorId,
+    sensorId: 'fobo-$sensorId',
     pressureBar: pressureKpa / 100.0,
     celsius: temperature.toDouble(),
     rssi: rssi,
@@ -449,7 +449,7 @@ TreelReading? decodeTpmsBleF(
       ? _tpmsHex(sensorSuffix.take(3))
       : _tpmsDeviceId(deviceId);
   return _tpmsReading(
-    sensorId: 'hrtpms-' + sensorId,
+    sensorId: 'hrtpms-$sensorId',
     pressureBar: (rawPressure - 100) * 0.01,
     celsius: temperature.toDouble(),
     rssi: rssi,
@@ -484,7 +484,7 @@ TreelReading? decodeTpmsBleG(
         ? _tpmsHex(sensorSuffix.take(3))
         : _tpmsDeviceId(deviceId);
     return _tpmsReading(
-      sensorId: 'ai-tpms-' + sensorId,
+      sensorId: 'ai-tpms-$sensorId',
       pressureBar: pressureBar.clamp(0.0, 20.0).toDouble(),
       celsius: entry.value[0].toDouble(),
       rssi: rssi,
@@ -513,7 +513,7 @@ TreelReading? decodeTpmsBleH(
     final rawAbsolutePsi = (frame[3] << 8) | frame[4];
     final pressureBar = ((rawAbsolutePsi / 10.0) - 14.6) * 0.0689476;
     return _tpmsReading(
-      sensorId: 'tc-tpms-' + _tpmsHex(frame.sublist(5, 11)),
+      sensorId: 'tc-tpms-${_tpmsHex(frame.sublist(5, 11))}',
       pressureBar: pressureBar.clamp(0.0, 20.0).toDouble(),
       celsius: frame[2].toDouble(),
       rssi: rssi,
@@ -543,7 +543,7 @@ TreelReading? decodeSysgration(
     final pressureKpa = _signedInt32Le(frame, 6) / 1000.0;
     final celsius = _signedInt32Le(frame, 10) / 100.0;
     return _tpmsReading(
-      sensorId: 'sysgration-' + _tpmsHex(frame.sublist(3, 6)),
+      sensorId: 'sysgration-${_tpmsHex(frame.sublist(3, 6))}',
       pressureBar: pressureKpa / 100.0,
       celsius: celsius,
       rssi: rssi,
@@ -578,7 +578,7 @@ TreelReading? decodeBekubeeTpms(
         .toRadixString(16)
         .padLeft(6, '0');
     return _tpmsReading(
-      sensorId: 'bekubee-' + sensorId,
+      sensorId: 'bekubee-$sensorId',
       pressureBar: pressureKpa / 100.0,
       celsius: temperature.toDouble(),
       rssi: rssi,
