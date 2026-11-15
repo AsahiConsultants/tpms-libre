@@ -123,7 +123,16 @@ enum SensorProtocol {
   automatic('Automatic', 'automatic'),
   treel('JK Tyre Treel', 'treel'),
   zeepin('ZEEPIN / TP630', 'zeepin'),
-  br('BR', 'br'),
+  br('BR / SYTPMS / Pecham / Bekubee KY', 'br'),
+  tpmsBleA('TPMSII Type A', 'tpms_ble_a'),
+  tpmsBleC('Michelin TMS Type C', 'tpms_ble_c'),
+  tpmsBleD('WODHMIEY / ITPMS K Type D', 'tpms_ble_d'),
+  tpmsBleE('Salutica FOBO Type E', 'tpms_ble_e'),
+  tpmsBleF('Bekubee HRTPMS Type F', 'tpms_ble_f'),
+  tpmsBleG('Ai TPMS AI-8000 Type G', 'tpms_ble_g'),
+  tpmsBleH('TC.TPMS Type H', 'tpms_ble_h'),
+  sysgration('Sysgration', 'sysgration'),
+  bekubeeTpms('Bekubee TPMS', 'bekubee_tpms'),
   tesla('Tesla / Autel BLE', 'tesla');
 
   const SensorProtocol(this.label, this.id);
@@ -176,10 +185,23 @@ TreelReading? decodeBr(
   Map<int, List<int>> manufacturerData, {
   required int rssi,
   required String deviceId,
+  List<String> services = const [],
+  Map<String, List<int>> serviceData = const {},
+  String? name,
   DateTime? at,
 }) {
-  final frame = manufacturerData[0x1d28];
-  if (frame == null || frame.length != 5) return null;
+  List<int>? frame;
+  for (final entry in manufacturerData.entries) {
+    if (entry.value.length == 5 &&
+        (entry.key == 0x1d28 ||
+            services.any((uuid) => _tpmsUuidMatches(uuid, brServiceUuid)) ||
+            name == 'BR' ||
+            name == 'KY')) {
+      frame = entry.value;
+      break;
+    }
+  }
+  if (frame == null) return null;
 
   final celsius = frame[0];
   final pressureRaw = (frame[1] << 8) | frame[2];
@@ -191,14 +213,379 @@ TreelReading? decodeBr(
     RegExp(r'[^a-z0-9]'),
     '',
   );
-  final sensorId = 'br-$stableId';
+  final simulatorId = _tpmsServiceData(serviceData, tpmsBleTypeBIdServiceUuid);
+  final sensorSuffix = simulatorId != null && simulatorId.length >= 3
+      ? _tpmsHex(simulatorId.take(3))
+      : stableId;
   return TreelReading(
-    sensorId: sensorId,
+    sensorId: 'br-$sensorSuffix',
     psi: psi,
     celsius: celsius,
     rssi: rssi,
     at: at ?? DateTime.now(),
   );
+}
+
+
+
+const String tpmsBleTypeGServiceUuid =
+    '0000a829-0000-1000-8000-00805f9b34fb';
+const String tpmsBleBekubeeServiceUuid =
+    '0000a82a-0000-1000-8000-00805f9b34fb';
+const String tpmsBleTypeHServiceUuid =
+    '0000a828-0000-1000-8000-00805f9b34fb';
+const String tpmsBleTypeFServiceUuid =
+    '0000a827-0000-1000-8000-00805f9b34fb';
+const String tpmsBleSysgrationServiceUuid =
+    '0000fbb0-0000-1000-8000-00805f9b34fb';
+const String tpmsBleFoboServiceUuid =
+    '0000012a-0000-1000-8000-00805f9b34fb';
+const String tpmsBleTypeBIdServiceUuid = '0000a82b-0000-1000-8000-00805f9b34fb';
+const String tpmsBleTypeCIdServiceUuid = '0000a82c-0000-1000-8000-00805f9b34fb';
+const String tpmsBleTypeEIdServiceUuid = '0000a82e-0000-1000-8000-00805f9b34fb';
+const String tpmsBleTypeFIdServiceUuid = '0000a82f-0000-1000-8000-00805f9b34fb';
+
+String _tpmsDeviceId(String deviceId) =>
+    deviceId.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+String _tpmsHex(Iterable<int> bytes) => bytes
+    .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+    .join();
+
+bool _tpmsUuidMatches(String candidate, String expected) {
+  final value = candidate.toLowerCase().replaceFirst(RegExp(r'^0x'), '');
+  if (value == expected) return true;
+  if (value.length == 4) return value == expected.substring(4, 8);
+  if (value.length == 8) return value == expected.substring(0, 8);
+  return false;
+}
+
+List<int>? _tpmsServiceData(
+  Map<String, List<int>> serviceData,
+  String expectedUuid,
+) {
+  for (final entry in serviceData.entries) {
+    if (_tpmsUuidMatches(entry.key, expectedUuid)) return entry.value;
+  }
+  return null;
+}
+
+int _signedInt32Le(List<int> bytes, int offset) {
+  final value = bytes[offset] |
+      (bytes[offset + 1] << 8) |
+      (bytes[offset + 2] << 16) |
+      (bytes[offset + 3] << 24);
+  return value >= 0x80000000 ? value - 0x100000000 : value;
+}
+
+TreelReading? _tpmsReading({
+  required String sensorId,
+  required double pressureBar,
+  required double celsius,
+  required int rssi,
+  DateTime? at,
+}) {
+  final psi = (pressureBar * 14.503774).round();
+  final temperature = celsius.round();
+  if (!pressureBar.isFinite || pressureBar < 0 || psi > 200) return null;
+  if (!celsius.isFinite || temperature < -50 || temperature > 150) return null;
+  return TreelReading(
+    sensorId: sensorId,
+    psi: psi,
+    celsius: temperature,
+    rssi: rssi,
+    at: at ?? DateTime.now(),
+  );
+}
+
+TreelReading? decodeTpmsBleA(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  DateTime? at,
+}) {
+  final frame = manufacturerData[0x0100];
+  if (frame == null || frame.length != 16) return null;
+  final pressureBar = _signedInt32Le(frame, 6) / 100000.0;
+  final celsius = _signedInt32Le(frame, 10) / 100.0;
+  final sensorId = _tpmsHex(frame.sublist(0, 6));
+  return _tpmsReading(
+    sensorId: 'tpms-a-' + sensorId,
+    pressureBar: pressureBar,
+    celsius: celsius,
+    rssi: rssi,
+    at: at,
+  );
+}
+
+TreelReading? decodeTpmsBleC(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  Map<String, List<int>> serviceData = const {},
+  DateTime? at,
+}) {
+  final frame = manufacturerData[0x0828];
+  if (frame == null || frame.length < 4 || frame[0] != 0x01) return null;
+  final frameType = frame[1];
+  int? rawPressure;
+  int rawTemperature;
+  if (frameType == 0x02 || frameType == 0x06) {
+    rawTemperature = frame[2] - 60;
+  } else if (frameType == 0x03 || frameType == 0x04 || frameType == 0x0c) {
+    if (frame.length < 6) return null;
+    rawTemperature = frame[2] - 60;
+    rawPressure = frame[4] | (frame[5] << 8);
+  } else if (frameType == 0x05) {
+    if (frame.length < 14) return null;
+    rawTemperature = frame[2] - 60;
+    rawPressure = frame[12] | (frame[13] << 8);
+  } else {
+    return null;
+  }
+  if (rawPressure == null) return null;
+  final pressureBar = (rawPressure / 1000.0 - 1.0).clamp(0.0, 20.0).toDouble();
+  final sensorSuffix = _tpmsServiceData(serviceData, tpmsBleTypeCIdServiceUuid);
+  final sensorId = sensorSuffix != null && sensorSuffix.length >= 3
+      ? _tpmsHex(sensorSuffix.take(3))
+      : _tpmsDeviceId(deviceId);
+  return _tpmsReading(
+    sensorId: 'michelin-' + sensorId,
+    pressureBar: pressureBar,
+    celsius: rawTemperature.toDouble(),
+    rssi: rssi,
+    at: at,
+  );
+}
+
+TreelReading? decodeTpmsBleD(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  DateTime? at,
+}) {
+  final frame = manufacturerData[0x00ac];
+  if (frame == null || frame.length < 7) return null;
+  final temperature = frame[2] - 55;
+  double pressureBar;
+  if (frame[6] == 0 || frame[6] == 1) {
+    final rawPressure = frame[1] + (frame[6] == 1 ? 256 : 0);
+    pressureBar = rawPressure * 0.03144;
+  } else if (frame.length >= 8) {
+    pressureBar = ((frame[7] - 2) / 103.0).clamp(0.0, 20.0).toDouble();
+  } else {
+    return null;
+  }
+  final sensorId = frame.length == 15
+      ? _tpmsHex(frame.sublist(9, 15).reversed)
+      : _tpmsDeviceId(deviceId);
+  return _tpmsReading(
+    sensorId: 'itpms-' + sensorId,
+    pressureBar: pressureBar,
+    celsius: temperature.toDouble(),
+    rssi: rssi,
+    at: at,
+  );
+}
+
+TreelReading? decodeTpmsBleE(
+  Map<int, List<int>> manufacturerData,
+  Map<String, List<int>> serviceData, {
+  required int rssi,
+  required String deviceId,
+  DateTime? at,
+}) {
+  List<int>? frame;
+  var temperatureOffset = 50;
+  for (final entry in serviceData.entries) {
+    if (_tpmsUuidMatches(entry.key, tpmsBleFoboServiceUuid)) {
+      frame = entry.value;
+      temperatureOffset = 40;
+      break;
+    }
+  }
+  frame ??= manufacturerData[0x0127];
+  if (frame == null || frame.length < 4) return null;
+  final payload = frame.sublist(frame.length - 4);
+  final temperature = (payload[1] & 0x7f) - temperatureOffset;
+  final rawValue = (payload[2] << 8) | payload[3];
+  final pressureKpa = rawValue & 0x03ff;
+  final sensorSuffix = _tpmsServiceData(serviceData, tpmsBleTypeEIdServiceUuid);
+  final sensorId = sensorSuffix != null && sensorSuffix.length >= 3
+      ? _tpmsHex(sensorSuffix.take(3))
+      : _tpmsDeviceId(deviceId);
+  return _tpmsReading(
+    sensorId: 'fobo-' + sensorId,
+    pressureBar: pressureKpa / 100.0,
+    celsius: temperature.toDouble(),
+    rssi: rssi,
+    at: at,
+  );
+}
+
+TreelReading? decodeTpmsBleF(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  List<String> services = const [],
+  Map<String, List<int>> serviceData = const {},
+  DateTime? at,
+}) {
+  if (!services.any((uuid) => _tpmsUuidMatches(uuid, tpmsBleTypeFServiceUuid))) {
+    return null;
+  }
+  List<int>? frame;
+  for (final entry in manufacturerData.entries) {
+    if (entry.value.length == 9) {
+      frame = entry.value;
+      break;
+    }
+  }
+  if (frame == null) return null;
+  final temperature = frame[1] - 50;
+  final rawPressure = (frame[2] << 8) | frame[3];
+  final sensorSuffix = _tpmsServiceData(serviceData, tpmsBleTypeFIdServiceUuid);
+  final sensorId = sensorSuffix != null && sensorSuffix.length >= 3
+      ? _tpmsHex(sensorSuffix.take(3))
+      : _tpmsDeviceId(deviceId);
+  return _tpmsReading(
+    sensorId: 'hrtpms-' + sensorId,
+    pressureBar: (rawPressure - 100) * 0.01,
+    celsius: temperature.toDouble(),
+    rssi: rssi,
+    at: at,
+  );
+}
+
+TreelReading? decodeTpmsBleG(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  String? name,
+  List<String> services = const [],
+  Map<String, List<int>> serviceData = const {},
+  DateTime? at,
+}) {
+  final serviceMatch = services.any(
+    (uuid) => _tpmsUuidMatches(uuid, tpmsBleTypeGServiceUuid),
+  ) || _tpmsServiceData(serviceData, tpmsBleTypeGServiceUuid) != null;
+  final addressMatch = deviceId.toUpperCase().startsWith('12:30:AF');
+  if (!serviceMatch && !addressMatch && !(name?.startsWith('AI-') ?? false)) {
+    return null;
+  }
+  for (final entry in manufacturerData.entries) {
+    if (entry.value.length != 3) continue;
+    final battery = (entry.key >> 8) & 0xff;
+    if (battery < 15 || battery > 43) continue;
+    final rawAbsolutePsi = (entry.value[1] << 8) | entry.value[2];
+    final pressureBar = ((rawAbsolutePsi / 10.0) - 14.696) * 0.0689476;
+    final sensorSuffix = _tpmsServiceData(serviceData, tpmsBleTypeGServiceUuid);
+    final sensorId = sensorSuffix != null && sensorSuffix.length >= 3
+        ? _tpmsHex(sensorSuffix.take(3))
+        : _tpmsDeviceId(deviceId);
+    return _tpmsReading(
+      sensorId: 'ai-tpms-' + sensorId,
+      pressureBar: pressureBar.clamp(0.0, 20.0).toDouble(),
+      celsius: entry.value[0].toDouble(),
+      rssi: rssi,
+      at: at,
+    );
+  }
+  return null;
+}
+
+TreelReading? decodeTpmsBleH(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  List<String> services = const [],
+  DateTime? at,
+}) {
+  if (!services.any(
+    (uuid) => _tpmsUuidMatches(uuid, tpmsBleTypeHServiceUuid),
+  )) {
+    return null;
+  }
+  for (final entry in manufacturerData.entries) {
+    if (entry.value.length != 9) continue;
+    final frame = [entry.key & 0xff, (entry.key >> 8) & 0xff, ...entry.value];
+    if (frame.length != 11) continue;
+    final rawAbsolutePsi = (frame[3] << 8) | frame[4];
+    final pressureBar = ((rawAbsolutePsi / 10.0) - 14.6) * 0.0689476;
+    return _tpmsReading(
+      sensorId: 'tc-tpms-' + _tpmsHex(frame.sublist(5, 11)),
+      pressureBar: pressureBar.clamp(0.0, 20.0).toDouble(),
+      celsius: frame[2].toDouble(),
+      rssi: rssi,
+      at: at,
+    );
+  }
+  return null;
+}
+
+TreelReading? decodeSysgration(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  List<String> services = const [],
+  DateTime? at,
+}) {
+  if (!services.any(
+    (uuid) => _tpmsUuidMatches(uuid, tpmsBleSysgrationServiceUuid),
+  )) {
+    return null;
+  }
+  for (final frame in manufacturerData.values) {
+    if (frame.length != 16 || frame[1] != 0xea || frame[2] != 0xca) {
+      continue;
+    }
+    final location = frame[0];
+    if (location < 0x80 || location > 0x83) continue;
+    final pressureKpa = _signedInt32Le(frame, 6) / 1000.0;
+    final celsius = _signedInt32Le(frame, 10) / 100.0;
+    return _tpmsReading(
+      sensorId: 'sysgration-' + _tpmsHex(frame.sublist(3, 6)),
+      pressureBar: pressureKpa / 100.0,
+      celsius: celsius,
+      rssi: rssi,
+      at: at,
+    );
+  }
+  return null;
+}
+
+TreelReading? decodeBekubeeTpms(
+  Map<int, List<int>> manufacturerData, {
+  required int rssi,
+  required String deviceId,
+  List<String> services = const [],
+  String? name,
+  DateTime? at,
+}) {
+  final hasBekubeeMarker = services.any(
+    (uuid) => _tpmsUuidMatches(uuid, tpmsBleBekubeeServiceUuid),
+  );
+  if (!hasBekubeeMarker && name?.trim() != 'TPMS') return null;
+  if (!services.any(
+    (uuid) => _tpmsUuidMatches(uuid, tpmsBleTypeFServiceUuid),
+  )) {
+    return null;
+  }
+  for (final frame in manufacturerData.values) {
+    if (frame.length < 9) continue;
+    final pressureKpa = ((frame[2] << 8) | frame[3]) - 100;
+    final temperature = frame[1] - 50;
+    final sensorId = (frame[4] | (frame[5] << 8) | (frame[6] << 16))
+        .toRadixString(16)
+        .padLeft(6, '0');
+    return _tpmsReading(
+      sensorId: 'bekubee-' + sensorId,
+      pressureBar: pressureKpa / 100.0,
+      celsius: temperature.toDouble(),
+      rssi: rssi,
+      at: at,
+    );
+  }
+  return null;
 }
 
 
@@ -361,51 +748,74 @@ TreelReading? decodeSensor(
   required String deviceId,
   String? name,
   List<String> services = const [],
+  Map<String, List<int>> serviceData = const {},
   DateTime? at,
 }) {
-  switch (protocol) {
-    case SensorProtocol.treel:
-      return decodeTreel(manufacturerData, rssi: rssi, at: at);
-    case SensorProtocol.zeepin:
-      return decodeZeepin(manufacturerData, rssi: rssi, at: at);
-    case SensorProtocol.tesla:
-      return decodeTeslaAdvertisement(
-        manufacturerData,
-        rssi: rssi,
-        deviceId: deviceId,
-        at: at,
-      );
-    case SensorProtocol.br:
-      return decodeBr(
-        manufacturerData,
-        rssi: rssi,
-        deviceId: deviceId,
-        at: at,
-      );
-    case SensorProtocol.automatic:
-      final tesla = decodeTeslaAdvertisement(
-        manufacturerData,
-        rssi: rssi,
-        deviceId: deviceId,
-        at: at,
-      );
-      if (tesla != null) return tesla;
-      final treel = decodeTreel(manufacturerData, rssi: rssi, at: at);
-      if (treel != null) return treel;
-      final zeepin = decodeZeepin(manufacturerData, rssi: rssi, at: at);
-      if (zeepin != null) return zeepin;
-      final hasBrService = services.any(
-        (uuid) => uuid.toLowerCase() == brServiceUuid,
-      );
-      final hasBrManufacturer = manufacturerData[0x1d28]?.length == 5;
-      if (hasBrService || hasBrManufacturer || name == 'BR') {
-        return decodeBr(
-          manufacturerData,
-          rssi: rssi,
-          deviceId: deviceId,
-          at: at,
-        );
-      }
-      return null;
+  TreelReading? decode(SensorProtocol selected) {
+    switch (selected) {
+      case SensorProtocol.treel:
+        return decodeTreel(manufacturerData, rssi: rssi, at: at);
+      case SensorProtocol.zeepin:
+        return decodeZeepin(manufacturerData, rssi: rssi, at: at);
+      case SensorProtocol.tesla:
+        return decodeTeslaAdvertisement(manufacturerData, rssi: rssi, deviceId: deviceId, at: at);
+      case SensorProtocol.br:
+        return decodeBr(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, serviceData: serviceData, name: name, at: at);
+      case SensorProtocol.tpmsBleA:
+        return decodeTpmsBleA(manufacturerData, rssi: rssi, deviceId: deviceId, at: at);
+      case SensorProtocol.tpmsBleC:
+        return decodeTpmsBleC(manufacturerData, rssi: rssi, deviceId: deviceId, serviceData: serviceData, at: at);
+      case SensorProtocol.tpmsBleD:
+        return decodeTpmsBleD(manufacturerData, rssi: rssi, deviceId: deviceId, at: at);
+      case SensorProtocol.tpmsBleE:
+        return decodeTpmsBleE(manufacturerData, serviceData, rssi: rssi, deviceId: deviceId, at: at);
+      case SensorProtocol.tpmsBleF:
+        return decodeTpmsBleF(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, serviceData: serviceData, at: at);
+      case SensorProtocol.tpmsBleG:
+        return decodeTpmsBleG(manufacturerData, rssi: rssi, deviceId: deviceId, name: name, services: services, serviceData: serviceData, at: at);
+      case SensorProtocol.tpmsBleH:
+        return decodeTpmsBleH(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, at: at);
+      case SensorProtocol.sysgration:
+        return decodeSysgration(manufacturerData, rssi: rssi, services: services, at: at);
+      case SensorProtocol.bekubeeTpms:
+        return decodeBekubeeTpms(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, name: name, at: at);
+      case SensorProtocol.automatic:
+        return null;
+    }
   }
+
+  if (protocol != SensorProtocol.automatic) return decode(protocol);
+
+  final candidates = <TreelReading?>[
+    decodeTeslaAdvertisement(manufacturerData, rssi: rssi, deviceId: deviceId, at: at),
+    decodeTreel(manufacturerData, rssi: rssi, at: at),
+    decodeZeepin(manufacturerData, rssi: rssi, at: at),
+    decodeTpmsBleA(manufacturerData, rssi: rssi, deviceId: deviceId, at: at),
+    decodeTpmsBleC(manufacturerData, rssi: rssi, deviceId: deviceId, serviceData: serviceData, at: at),
+    decodeTpmsBleD(manufacturerData, rssi: rssi, deviceId: deviceId, at: at),
+    decodeTpmsBleE(manufacturerData, serviceData, rssi: rssi, deviceId: deviceId, at: at),
+    decodeTpmsBleH(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, at: at),
+    decodeTpmsBleG(manufacturerData, rssi: rssi, deviceId: deviceId, name: name, services: services, serviceData: serviceData, at: at),
+    decodeSysgration(manufacturerData, rssi: rssi, services: services, at: at),
+    decodeBekubeeTpms(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, name: name, at: at),
+    decodeTpmsBleF(manufacturerData, rssi: rssi, deviceId: deviceId, services: services, serviceData: serviceData, at: at),
+  ];
+  for (final reading in candidates) {
+    if (reading != null) return reading;
+  }
+  final hasBrService = services.any(
+    (uuid) => _tpmsUuidMatches(uuid, brServiceUuid),
+  );
+  if (hasBrService || manufacturerData[0x1d28]?.length == 5 || name == 'BR' || name == 'KY') {
+    return decodeBr(
+      manufacturerData,
+      rssi: rssi,
+      deviceId: deviceId,
+      services: services,
+      serviceData: serviceData,
+      name: name,
+      at: at,
+    );
+  }
+  return null;
 }

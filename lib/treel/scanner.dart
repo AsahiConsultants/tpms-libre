@@ -261,6 +261,10 @@ class TreelScanner extends ChangeNotifier {
       name: device.name,
       deviceId: device.deviceId,
       services: device.services,
+      serviceData: {
+        for (final entry in device.serviceData.entries)
+          entry.key.toLowerCase(): entry.value.toList(),
+      },
     );
     if (reading != null) model.ingest(reading);
   }

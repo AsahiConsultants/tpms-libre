@@ -94,7 +94,9 @@ Sensors report often while the wheel turns and every few minutes when parked.
 The battery level is not in this frame, presumably in a second, encrypted
 advertisement, so the app does not show one.
 
-The decoders are in [`lib/treel/reading.dart`](lib/treel/reading.dart).
+The decoders are in [`lib/treel/reading.dart`](lib/treel/reading.dart). TPMSII, Michelin, WODHMIEY, FOBO, Bekubee, AI TPMS and TC.TPMS formats are recognised from their manufacturer data or service UUIDs. SYTPMS and Pecham share the 0x27A5 advertisement family; Sysgration is recognised by its 0xFBB0 service UUID. Bekubee's HRTPMS variants are distinguished by their service/name signatures.
+
+The additional protocol implementations are adaptations of the published formats in [bkbilly/tpms_ble](https://github.com/bkbilly/tpms_ble) (MIT) and [VincentMasselis/TPMS-advanced](https://github.com/VincentMasselis/TPMS-advanced) (Apache-2.0).
 
 ZEEPIN / TP630 uses company id `0x0001` and a 16-byte payload. The sensor
 address is carried in the first six bytes; pressure and temperature are

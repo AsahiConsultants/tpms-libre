@@ -1,6 +1,9 @@
 name: Build Android APK
 
 on:
+  push:
+    branches:
+      - feature/tpms-ble-protocols
   workflow_dispatch:
 
 permissions:
